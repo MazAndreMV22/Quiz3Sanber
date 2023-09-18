@@ -20,6 +20,7 @@ export default function App(){
       )
 
     const [fetchStatus, setFetchStatus] = useState(true)
+    const [currentId, setCurrentId] = useState(-1)
 
     useEffect(() => {
         //fetch data dengan kondisi
@@ -48,18 +49,34 @@ export default function App(){
     
        
         let {
-          id , name, description , category, size,price ,rating, image_url, release_year, is_android_app,is_ios_app
+          id 
         } = input;
 
-        axios.post('https://backendexample.sanbercloud.com/api/mobile-apps',
-      {id, name ,description , category, size,price ,rating, image_url, release_year, is_android_app,is_ios_app} )
-      .then((res) => {
-        console.log(res);
-        setFetchStatus(true);
-      })
-      .catch((error) => {
-        alert(error);
-      }, [fetchStatus, setFetchStatus])
+      if (currentId === -1) {
+
+        //create data
+        axios.post('https://backendexample.sanbercloud.com/api/mobile-apps', { id })
+        .then((res) => {
+            console.log(res);
+            setFetchStatus(true);
+          })
+          .catch((error) => {
+            alert(error);
+          }, [fetchStatus, setFetchStatus])
+  
+      }else{
+  
+          // update data
+          axios.put(`https://backendexample.sanbercloud.com/api/mobile-apps/${currentId}`, {id})
+          .then((res) => {
+            setFetchStatus(true)
+          })
+          .catch((error) => {
+            alert(error);
+          }, [fetchStatus, setFetchStatus])
+      }
+
+    setCurrentId(-1)
 
 
     setInput(
@@ -78,6 +95,54 @@ export default function App(){
       }
     )
     
+  }
+
+  const handleEdit = (event) => {
+    event.preventDefault()
+
+    let id = parseInt(event.target.value)
+
+    setCurrentId(id)
+
+    axios.get(`https://backendexample.sanbercloud.com/api/mobile-apps/${id}`)
+  .then((res) => {
+    let data = res.data
+
+
+setInput(
+  {
+    id: data.id, 
+      name: data.name, 
+      description:data.description , 
+      category :data.category,
+      size:data.size, 
+      price: data.price, 
+      rating:data.rating , 
+      image_url :data.image_url,
+      release_year : data.release_year, 
+      is_android_app: data.is_android_app, 
+      is_ios_app:data.is_ios_app 
+  }
+)
+
+}
+  )
+  }
+  
+
+  const handleDelete = (event) => {
+
+    let id = parseInt(event.target.value)
+
+    axios.delete (`https://backendexample.sanbercloud.com/api/mobile-apps/${id}`)
+    .then((res) => {
+        console.log(res);
+      setFetchStatus(true)
+    })
+    .catch((error) => {
+      alert(error);
+    }, [fetchStatus, setFetchStatus])
+
   }
 
 
@@ -173,9 +238,10 @@ export default function App(){
                               </td>
                               <td className="px-6 py-4 flex">
                         <button type="button" class="text-white bg-green-900 hover:bg-grey focus:ring-4 focus:ring-grey font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-900 dark:hover:bg-green-900 focus:outline-none dark:focus:ring-green-900 border-2">Display</button>
-                        <button type="button" class="focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-red-900">Update</button>
+                        <button type="button" class="focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-red-900"
+                        onClick={handleEdit} value={res.id}>Edit</button>
                         <button type="button" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
-                        >Delete</button>
+                        onClick={handleDelete} value={res.id}>Delete</button>
                          </td>
                             </tr>
                                                       </>
@@ -185,11 +251,11 @@ export default function App(){
             </table>
         </div>
         </div>
-        <div className="flex justify-center mt-10">
+        <div className="flex justify-center mt-10" >
       <div className="rounded-xl overflow-hidden shadow-xl shadow-grey ">
-        <div className='px-10 py-3'>
+        <div className='px-10 py-3' >
 <form onSubmit= {handleSubmit} >
-  <div className="mb-6">
+  <div className="mb-6" >
     <label htmlFor="id" className=" mb-2 text-sm font-medium text-gray-900 dark:text-white">Masukkan ID</label>
     <input type="text" onChange={handleInput} value={input.id} name='id' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan ID" required />
   </div>
@@ -199,45 +265,46 @@ export default function App(){
   </div>
   <div className="mb-6">
     <label htmlFor="description" className=" mb-2 text-sm font-medium text-gray-900 dark:text-white">Masukkan Deskripsi</label>
-    <input type="text" onChange={handleInput} value={input.description} name='description' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Course" required />
+    <input type="text" onChange={handleInput} value={input.description} name='description' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Deskripsi" required />
   </div>
   <div className="mb-6">
     <label htmlFor="category" className=" mb-2 text-sm font-medium text-gray-900 dark:text-white">Masukkan Category</label>
-    <input type="text" onChange={handleInput} value={input.category} name='category' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Nilai" required />
+    <input type="text" onChange={handleInput} value={input.category} name='category' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Category" required />
   </div>
   <div className="mb-6">
     <label htmlFor="size" className=" mb-2 text-sm font-medium text-gray-900 dark:text-white">Masukkan Size</label>
-    <input type="text" onChange={handleInput} value={input.size} name='size' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan ID" required />
+    <input type="text" onChange={handleInput} value={input.size} name='size' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Size" required />
   </div>
   <div className="mb-6">
     <label htmlFor="price" className=" mb-2 text-sm font-medium text-gray-900 dark:text-white">Masukkan Price</label>
-    <input type="text" onChange={handleInput} value={input.price} name='price'className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Nama" required />
+    <input type="text" onChange={handleInput} value={input.price} name='price'className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Price" required />
   </div>
   <div className="mb-6">
     <label htmlFor="rating" className=" mb-2 text-sm font-medium text-gray-900 dark:text-white">Masukkan Rating</label>
-    <input type="text" onChange={handleInput} value={input.rating} name='rating'className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Course" required />
+    <input type="text" onChange={handleInput} value={input.rating} name='rating'className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Rating" required />
   </div>
   <div className="mb-6">
     <label htmlFor="image_url" className=" mb-2 text-sm font-medium text-gray-900 dark:text-white">Masukkan url Image</label>
-    <input type="text" onChange={handleInput} value={input.image_url} name='image_url' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Nilai" required />
+    <input type="text" onChange={handleInput} value={input.image_url} name='image_url' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Url Image" required />
   </div>
   <div className="mb-6">
-    <label htmlFor="year" className=" mb-2 text-sm font-medium text-gray-900 dark:text-white">Masukkan Tahun</label>
-    <input type="text" onChange={handleInput} value={input.year} name='year' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Nama" required />
+    <label htmlFor="release_year" className=" mb-2 text-sm font-medium text-gray-900 dark:text-white">Masukkan Tahun</label>
+    <input type="text" onChange={handleInput} value={input.release_year} name='release_year' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Tahun" required />
   </div>
   <div className="mb-6">
     <label htmlFor="is_android_app" className=" mb-2 text-sm font-medium text-gray-900 dark:text-white">Ada Android ?</label>
-    <input type="text" onChange={handleInput} value={input.is_android_app} name='is_android_app' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Course" required />
+    <input type="text" onChange={handleInput} value={input.is_android_app} name='is_android_app' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Android" required />
   </div>
   <div className="mb-6">
     <label htmlFor="is_ios_app" className=" mb-2 text-sm font-medium text-gray-900 dark:text-white">Ada IOS ?</label>
-    <input type="text" onChange={handleInput} value={input.is_ios_app} name='is_ios_app' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Nilai" required />
+    <input type="text" onChange={handleInput} value={input.is_ios_app} name='is_ios_app' className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-60 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Masukkan Ios" required />
   </div>
   <button type={'submit'} className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
 </form>
 </div>
 </div>
 </div>
+
                     </>
                     )
 }

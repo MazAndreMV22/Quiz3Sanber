@@ -21,6 +21,34 @@ export default function App (){
       
           console.log(data);
 
+          const handleIndexAndroid = (param) => {
+            if (param == 1 ) {
+              return "Android";
+          } else {
+            return "Tidak Support Android";
+          }
+          };
+          const handleIndexios = (param) => {
+            if (param == 1 ) {
+              return "Ios";
+          } else {
+            return "Tidak Support Ios";
+          }
+          };
+
+          const handleIndexgiga = (param) => {
+           return param / 1000 
+              
+          };
+          const handleIndexfree = (param) => {
+            if (param == 0 ) {
+              return "FREE"; 
+            }else{
+              return param;
+            }
+           };
+
+
   return (
   
   <div>
@@ -46,13 +74,13 @@ export default function App (){
           </p>
           <div className=" item-center mt-2 text-gray-500">
             <p><span>{res.category}</span></p>
-            <p><span>{res.size}</span></p>
-            <span>, {res.is_android_app} &amp; {res.is_ios_app}</span>
+            <span>{handleIndexgiga(res.size)}</span> .Gb
+            <span>, {handleIndexAndroid(res.is_android_app)} &amp; {handleIndexios(res.is_ios_app)}</span>
           </div>
           <div className="flex item-center justify-between mt-3">
             
-            <h1 className="text-gray-700 font-bold text-xl"  id="rupiah"  >Rp. 
-            {res.price}
+            <h1 className="text-gray-700 font-bold text-xl"  id="rupiah"  > 
+            {handleIndexfree(res.price)}
             </h1>
             <button className="px-3 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded">
             {res.rating}
